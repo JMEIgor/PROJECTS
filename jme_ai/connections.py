@@ -8,19 +8,19 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Conexão da base de dados da JME 
-app.config['JME_DB_HOST'] = os.getenv('DB_HOST')
-app.config['JME_DB_USER'] = os.getenv('DB_USER')
-app.config['JME_DB_PASSWORD'] = os.getenv('DB_PASSWORD')
-app.config['JME_DB_NAME'] = os.getenv('DB_NAME')
+# Configuração da primeira base de dados MySQL
+app.config['DB1_HOST'] = os.getenv('DB1_HOST')
+app.config['DB1_USER'] = os.getenv('DB1_USER')
+app.config['DB1_PASSWORD'] = os.getenv('DB1_PASSWORD')
+app.config['DB1_DB'] = os.getenv('DB1_NAME')
 
-# Conexão da base de dados Lettel(Transcrições) 
-app.config['LETTEL_DB_HOST'] = os.getenv('DB_LETTEL_HOST')
-app.config['LETTEL_DB_USER'] = os.getenv('DB_LETTEL_USER')
-app.config['LETTEL_DB_PASSWORD'] = os.getenv('DB_LETTEL_PASSWORD')
-app.config['LETTEL_DB_NAME'] = os.getenv('DB_LETTEL_NAME')
+# Configuração da segunda base de dados MySQL
+app.config['DB2_HOST'] = os.getenv('DB2_HOST')
+app.config['DB2_USER'] = os.getenv('DB2_USER')
+app.config['DB2_PASSWORD'] = os.getenv('DB2_PASSWORD')
+app.config['DB2_DB'] = os.getenv('DB2_NAME')
 
-# Inicializando as conexões com os bancos de dados
+# Inicializando as conexões com os bancos de dados MySQL
 mysql_db1 = MySQL()
 mysql_db1.init_app(app)
 
@@ -29,7 +29,23 @@ mysql_db2.init_app(app)
 
 @app.route('/')
 def index():
-    return "Conexões com MySQL configuradas!"
+    return "Conexões com duas bases de dados MySQL configuradas!"
+
+@app.route('/data_db1')
+def get_data_from_db1():
+    cur = mysql_db1.connection.cursor()
+    cur.execute('SELECT * FROM your_table_db1')
+    data = cur.fetchall()
+    cur.close()
+    return str(data)
+
+@app.route('/data_db2')
+def get_data_from_db2():
+    cur = mysql_db2.connection.cursor()
+    cur.execute('SELECT * FROM your_table_db2')
+    data = cur.fetchall()
+    cur.close()
+    return str(data)
 
 if __name__ == '__main__':
     app.run(debug=True)
