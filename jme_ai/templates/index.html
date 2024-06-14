@@ -7,16 +7,25 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>ChatGPT API Test</h1>
-    <form method="POST">
-        <label for="prompt">Enter your prompt:</label>
-        <textarea id="prompt" name="prompt" rows="4" cols="50" required></textarea>
-        <br>
-        <button type="submit">Submit</button>
-    </form>
-    {% if response %}
-        <h2>Response:</h2>
-        <div id="response">{{ response }}</div>
-    {% endif %}
+    <div class="container">
+        <header>
+            <h1>ChatGPT API Test</h1>
+        </header>
+        <main>
+            <form method="POST">
+                <div class="form-group">
+                    <label for="prompt">Enter your prompt:<br></label>
+                    <textarea id="prompt" name="prompt" rows="4" required></textarea>
+                </div>
+                <button type="submit">Submit</button>
+            </form>
+            {% if response %}
+                <div class="response-container">
+                    <h2>Response:</h2>
+                    <div class="response">{{ response }}</div>
+                </div>
+            {% endif %}
+        </main>
+    </div>
 </body>
 </html>

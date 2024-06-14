@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import mysql.connector
 import psycopg2
 import logging
+from datetime import datetime
 
 load_dotenv()
 
@@ -52,7 +53,7 @@ def call_chatgpt_api(prompt):
         'Authorization': f'Bearer {API_KEY}'
     }
     data = {
-        'model': 'gpt-4',
+        'model': 'gpt-4o',
         'messages': [
             {'role': 'system', 'content': 'Você é um assistente de trabalho e está encarregado de analisar transcrição de ligações e identificar o assunto principal da ligação e detalhar o que foi resolvido'},
             {'role': 'user', 'content': prompt}
@@ -61,9 +62,8 @@ def call_chatgpt_api(prompt):
     try:
         response = requests.post(API_URL, headers=headers, json=data)
         response.raise_for_status()
-        response_text = response.text #Obtem a resposta como texto
-        app.logger.debug(f"Resposta da API do ChatGPT(texto): {response_text}")
-        response_json = response.json() # Decodifica o JSON
+        response_json = response.json()
+        app.logger.debug(f"Resposta da API do ChatGPT (JSON):{response_json}") # Decodifica o JSON
         return response_json
     except requests.exceptions.RequestException as error:
         print(f"Erro ao chamar a API do ChatGPT: {error}")
@@ -86,10 +86,35 @@ def process_and_send_data():
 
         prompt = f"Você é um assistente de trabalho que vai receber ligações transcritas e deve identificar como foi o atendimento, classificá-lo com (Atendente, Cliente, Mercado, Problema, Resolução do Problema, Foi solicitada avaliação do atendimento no fim da ligação)\n{data_string}"
         response = call_chatgpt_api(prompt)
-        return response
+
+        if response and 'choices' in response and len(response['choices']) > 0: 
+            response_text = response['choices'][0]['message']['content']
+            dt_call = datetime.now()
+            id_speaker= '116'
+            id_caller = '9999999'
+            save_response_to_db('1717758142.10313','2024-06-11','123','9999999', response_text)
+            return response
+        else:
+            return None
     except Exception as error:
         app.logger.error(f"Error ao selecionar dados: {error}")
         return None
+
+# Funcao que salva o retorno  do ChatGPT no BD 
+def save_response_to_db(uid_call,dt_call,id_speaker,id_caller,response_text):
+    try:
+        postgres_cursor = postgres_connection.cursor()
+        insert_query = """
+        INSERT INTO tb_gpt_output (uid_call, dt_call, id_speaker, id_caller, tx_response)
+        VALUES (%s, %s, %s, %s, %s) 
+        """
+        postgres_cursor.execute(insert_query, (uid_call, dt_call, id_speaker, id_caller, response_text))
+        postgres_connection.commit()
+        postgres_cursor.close()
+        app.logger.info("Resposta salva no banco de dados com sucesso.")
+    except Exception as error:
+        app.logger.error(f"Erro ao salvar a resposta no banco de dados: {error}")
+
 
 # DB Functions 
 # Funcao de importacao dos dados da Lettel e insercao na base da JME 
@@ -160,11 +185,6 @@ def send_data_gpt_route():
         try:
             response = api_response['choices'][0]['message']['content']
             app.logger.info(f"Resposta da API: {response}")
-
-            try:
-                response = json.loads(response)
-            except json.JSONDecodeError:
-                app.logger.warning("A resposta não está em formato JSON.")
         except (KeyError, IndexError) as e:
             app.logger.error(f"Erro ao processar a resposta da API: {e}")
             response = "Ocorreu um erro ao processar sua solicitacao. Por favor, tente novamente mais tarde"
@@ -174,9 +194,7 @@ def send_data_gpt_route():
 
 # Executa a aplicação
 if __name__ == '__main__':
-    app.run(debug=True)
-
-
+    app.run(host='0.0.0.0', port=5000, debug=True)
 
 # 13-06 00:55 - Criada a function import_data para importar as informações da lettel.v_cdr_transcriptions para jme.tb_ligacoes
 # 13-06 01:15 - Criada a function send_data_gpt para enviar informações do BD da JME para o ChatGPT como prompt para validação da ligação 
