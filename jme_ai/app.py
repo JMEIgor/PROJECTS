@@ -76,7 +76,7 @@ def call_chatgpt_api(prompt):
 def process_and_send_data():
     try:
         postgres_cursor = postgres_connection.cursor()
-        query = "SELECT text FROM tb_ligacoes WHERE UNIQUEID = '1717758142.10313'"
+        query = "SELECT text FROM tb_ligacoes WHERE UNIQUEID = '1718020109.11382'"
         postgres_cursor.execute(query)
         rows = postgres_cursor.fetchall()
         columns = [desc[0] for desc in postgres_cursor.description]
@@ -92,7 +92,7 @@ def process_and_send_data():
             dt_call = datetime.now()
             id_speaker= '116'
             id_caller = '9999999'
-            save_response_to_db('1717758142.10313','2024-06-11','123','9999999', response_text)
+            save_response_to_db('1718020109.11382','2024-06-10','123','9999999', response_text)
             return response
         else:
             return None
@@ -194,8 +194,9 @@ def send_data_gpt_route():
 
 # Executa a aplicação
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True) # Permite conexao para todos os IPs na rede, na porta 5000
 
 # 13-06 00:55 - Criada a function import_data para importar as informações da lettel.v_cdr_transcriptions para jme.tb_ligacoes
 # 13-06 01:15 - Criada a function send_data_gpt para enviar informações do BD da JME para o ChatGPT como prompt para validação da ligação 
 # 13-06 09:40 - Ajustada function process_and_send_data para consultar corretamente os dados na API
+

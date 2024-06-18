@@ -1,0 +1,1 @@
+# The models folder is responsible to content all the db-models from application # 

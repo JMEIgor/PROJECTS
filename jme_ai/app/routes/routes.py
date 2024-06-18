@@ -1,0 +1,1 @@
+# The routes folder is responsible to content all the routes from flask #

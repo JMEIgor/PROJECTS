@@ -1,3 +1,8 @@
+/* 
+The static folder is responsible for all the css code on the application
+styles.css is used to style the "templates/index.html"
+*/ 
+
 * {
     margin: 0;
     padding: 0;
