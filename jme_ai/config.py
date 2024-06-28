@@ -9,7 +9,7 @@ class Config:
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     
     # URL da API do OpenAI
-    API_URL = os.getenv('API_URL')
+    API_URL = os.getenv('API_URL_CHATGPT')
     
     # Configurações do banco de dados PostgreSQL
     DB_JME_HOST = os.getenv('DB_JME_HOST')

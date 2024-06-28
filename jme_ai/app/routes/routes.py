@@ -1,10 +1,11 @@
 # The routes folder is responsible to content all the routes from flask #
 #    Flask Routes 
 # Route to connection to main page (templates/index.html)
+
 from flask import current_app as app
 from flask import render_template, request, jsonify
 from . import main_routes
-from ..services.services import process_and_send_data, import_data, call_chatgpt_api
+from ..services.services import process_and_send_data, import_data, call_chatgpt_api, create_tables
 
 @main_routes.route('/', methods=['GET', 'POST'])
 def index():
