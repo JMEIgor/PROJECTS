@@ -22,7 +22,7 @@ def import_data():
     try:
         mysql_cursor = mysql_connection.cursor(dictionary=True)
         try:
-            mysql_cursor.execute("SELECT * FROM v_cdr_transcriptions WHERE uniqueid in (select callid from v_queue_calls_full where timestamp between '2024-06-01' and '2024-06-11')")
+            mysql_cursor.execute("SELECT * FROM v_cdr_transcriptions WHERE uniqueid in (select callid from v_queue_calls_full where timestamp between '2024-06-12' and '2024-06-30')")
             rows = mysql_cursor.fetchall()
             app.logger.info(f"Importando {len(rows)} registros do MySQL")
 
