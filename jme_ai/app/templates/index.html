@@ -1,34 +1,18 @@
-<!-- Templates folder is responsible for the HTML code from application -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatGPT API Test</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title> JME - Analytics</title>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>ChatGPT API Test</h1>
-        </header>
-        <main>
-            <form method="POST">
-                <div class="form-group">
-                    <label for="prompt">Enter your prompt:<br></label>
-                    <textarea id="prompt" name="prompt" rows="4" cols="50" required></textarea>
-                    <br>
-                </div>
-                <button type="submit">Submit</button>
-            </form>
-            {% if response %}
-                <div class="response-container">
-                    <h2>Response:</h2>
-                    <div class="response">{{ response }}</div>
-                </div>
-            {% endif %}
-        </main>
+    <h1>JME Analytics</h1>
+    <br>
+    <div class="main-square">
+        <button class="main-button" onclick="location.href='{{ url_for('main_routes.routine_page') }}'">Rotinas</button>
+        <button class="main-button" onclick="location.href='{{ url_for('main_routes.exportation_page') }}'">Exportação de Dados</button>
+        <button class="main-button" onclick="location.href='{{ url_for('main_routes.chatwithgpt_page') }}'">ChatWithGPT</button>
     </div>
 </body>
 </html>

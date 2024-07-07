@@ -9,6 +9,7 @@ from flask import current_app as app
 from config import Config
 
 # DB Connections 
+# PostgreSQL Connection 
 postgres_connection = psycopg2.connect(
     host=Config.DB_JME_HOST,
     user=Config.DB_JME_USER,
@@ -16,6 +17,7 @@ postgres_connection = psycopg2.connect(
     dbname=Config.DB_JME_NAME
 )
 
+#MySQL Connection 
 mysql_connection = mysql.connector.connect(
     host=Config.DB_LETTEL_HOST,
     user=Config.DB_LETTEL_USER,
@@ -24,21 +26,71 @@ mysql_connection = mysql.connector.connect(
 )
 
 # JME DB - Functions
-# Function to validate or create tb_ligacoes
+# Function to validade if primordial tables exists, if not, create them 
 def create_tables():
     try: 
         postgres_cursor = postgres_connection.cursor()
 
-        create_table_query = """
-        CREATE TABLE IF NOT EXISTS tb_ligacoes (
-            id INT(8) PRYMARY KEY NOT NULL,
-            uniqueid VARCHAR(32) NOT NULL,
-            speaker VARCHAR(50),
-            start INT(4),
-            end_time INT(4) NOT NULL,
-            text VARCHAR(100)
-        );
-        """
+        create_table_queries = [
+            """
+            CREATE TABLE IF NOT EXISTS tb_analyst (
+                id_analyst SERIAL PRIMARY KEY,
+                lettel_agent VARCHAR(20) NOT NULL,
+                name VARCHAR(40) NOT NULL,
+                team VARCHAR(25) NOT NULL
+            );
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS tb_gpt_output (
+                id SERIAL PRIMARY KEY,
+                uid_call VARCHAR(32) NOT NULL,
+                dt_call DATE NOT NULL,
+                id_speaker VARCHAR(8) NOT NULL,
+                id_caller VARCHAR(30) NOT NULL,
+                tx_response TEXT NOT NULL
+            );
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS tb_info_call (
+                id SERIAL PRIMARY KEY,
+                callid VARCHAR(32) NOT NULL,
+                caller_id VARCHAR(30) NOT NULL,
+                transfer VARCHAR(30),
+                status VARCHAR(30) NOT NULL,
+                date DATE NOT NULL,
+                queue VARCHAR(25) NOT NULL,
+                position INT,
+                original_position INT,
+                holdtime INT,
+                start_time INT NOT NULL,
+                end_time INT NOT NULL,
+                text VARCHAR(50000),
+                duration INT NOT NULL,
+                agente VARCHAR(30)
+            );
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS tb_import_call (
+                id SERIAL PRIMARY KEY,
+                callid VARCHAR(32) NOT NULL,
+                caller_id VARCHAR(30) NOT NULL,
+                transfer VARCHAR(30),
+                status VARCHAR(30) NOT NULL,
+                date DATE NOT NULL,
+                queue VARCHAR(25) NOT NULL,
+                holdtime INT,
+                start_time INT NOT NULL,
+                end_time INT NOT NULL,
+                text VARCHAR(1000),
+                duration INT NOT NULL,
+                agente VARCHAR(30)
+            );
+            """
+        ]
+
+        for query in create_table_queries:
+            postgres_cursor.execute(query)
+
         postgres_cursor.execute(create_table_query)
         postgres_connection.commit()
         postgres_cursor.close()
@@ -47,11 +99,32 @@ def create_tables():
         app.logger.error(f"Erro ao criar tabelas: {error}")
 
 # Function to import data from Lettel DB to JME DB
+# Função de importação dos dados da Lettel e inserção na base da JME
 def import_data():
     try:
         mysql_cursor = mysql_connection.cursor(dictionary=True)
         try:
-            mysql_cursor.execute("SELECT * FROM v_cdr_transcriptions WHERE uniqueid in (select callid from v_queue_calls_full where timestamp between '2024-06-01' and '2024-06-11')")
+            query = """
+            SELECT vct.uniqueid AS callid, 
+                vqcf.caller_id,
+                vqcf.transfer,
+                vqcf.status,
+                vqcf.`timestamp` AS date,
+                vqcf.queue,
+                vqcf.holdtime,
+                vct.`start` AS start_time,
+                vct.`end` AS end_time,
+                vct.`text`,
+                vqcf.duration,
+                vqcf.agente 
+            FROM v_cdr_transcriptions vct 
+            INNER JOIN v_queue_calls_full vqcf ON vct.uniqueid = vqcf.callid 
+            WHERE vct.uniqueid IN (
+                SELECT callid FROM v_queue_calls_full vqcf2 
+                WHERE timestamp BETWEEN '2024-07-01' AND '2024-01-01'
+            );
+            """
+            mysql_cursor.execute(query)
             rows = mysql_cursor.fetchall()
             app.logger.info(f"Importando {len(rows)} registros do MySQL")
 
@@ -60,22 +133,27 @@ def import_data():
                 # Log do registro 
                 app.logger.debug(f"Registro do MySQL: {row}")
 
-                id = row['id']
-                uniqueid = row['uniqueid']
-                speaker = row['speaker'] if row['speaker'] is not None else 'N/A'
-                start = row['start']
-                end_time = row['end']
+                callid = row['callid']
+                caller_id = row['caller_id']
+                transfer = row['transfer']
+                status = row['status']
+                date = row['date']
+                queue = row['queue']
+                holdtime = int(row['holdtime']) if row['holdtime'] else None
+                start_time = int(row['start_time']) if row['start_time'] else None
+                end_time = int(row['end_time']) if row['end_time'] else None
                 text = row['text']
+                duration = int(row['duration'])
+                agente = row['agente']
 
                 try:
                     postgres_cursor.execute("""
-                    INSERT INTO tb_ligacoes (id, uniqueid, speaker, start, end_time, text)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                    """, (id, uniqueid, speaker, start, end_time, text)
-                    )
-                    app.logger.info(f"Registro Inserido: {row['id'], row['uniqueid'], row['speaker'], row['start'], row['end'], row['text']}")
+                    INSERT INTO tb_import_call (callid, caller_id, transfer, status, date, queue, holdtime, start_time, end_time, text, duration, agente)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """, (callid, caller_id, transfer, status, date, queue, holdtime, start_time, end_time, text, duration, agente))
+                    app.logger.info(f"Registro Inserido: {row['callid'], row['caller_id'], row['transfer'], row['status'], row['date'], row['queue'], row['holdtime'], row['start_time'], row['end_time'], row['text'], row['duration'], row['agente']}")
                 except Exception as error:
-                    app.logger.error(f"Erro ao inserir registro {row['id'], row['uniqueid'], row['speaker'], row['start'], row['end'], row['text']}: {error}")
+                    app.logger.error(f"Erro ao inserir registro {row['callid'], row['caller_id'], row['transfer'], row['status'], row['date'], row['queue'], row['holdtime'], row['start_time'], row['end_time'], row['text'], row['duration'], row['agente']}: {error}")
 
             postgres_connection.commit()
             app.logger.info("Dados importados com sucesso!")
@@ -85,6 +163,7 @@ def import_data():
             mysql_cursor.close()
     except Exception as error:
         app.logger.error(f"Erro ao importar dados: {error}")
+
 
 #GPT  Functions 
 # main page input to chatgpt and return response on main page screen 
