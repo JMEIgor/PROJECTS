@@ -2,7 +2,8 @@ from flask import current_app as app
 from flask import render_template, request, jsonify
 from . import main_routes
 from flask import Blueprint
-from ..services.services import import_data, process_and_send_data, call_chatgpt_api
+from ..services.gpt_functions import process_and_send_data, call_chatgpt_api
+from ..services.services import import_data
 
 #main_page route 
 @main_routes.route('/')
