@@ -26,8 +26,6 @@ create_table_queries = {
                 status VARCHAR(30) NOT NULL,
                 date DATE NOT NULL,
                 queue VARCHAR(25) NOT NULL,
-                position INT,
-                original_position INT,
                 holdtime INT,
                 start_time INT NOT NULL,
                 end_time INT NOT NULL,

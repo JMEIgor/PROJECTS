@@ -3,19 +3,19 @@ from flask import render_template, request, jsonify
 from . import main_routes
 from flask import Blueprint
 from ..services.gpt_functions import process_and_send_data, call_chatgpt_api
-from ..services.services import import_data
+from ..services.services import import_data, process_data
 
 #main_page route 
 @main_routes.route('/')
 def index():
     return render_template('index.html')
 
-#routines page route
+#outines page route
 @main_routes.route('/routines')
 def routine_page():
     return render_template('routines.html')
 
-#data exportation page route
+#exportation page route
 @main_routes.route('/exportation')
 def exportation_page():
     return render_template('exportation.html')
@@ -30,6 +30,12 @@ def chatwithgpt_page():
 def import_data_route():
     import_data()
     return "Dados importados com sucesso!"
+
+#Route to process data from JME DB
+@main_routes.route('/process_data')
+def process_data_route():
+    process_data()
+    return "Dados processados com sucesso"
 
 #Route to transform 
 @main_routes.route('/transform_and_insert_data', methods=['GET', 'POST'])
