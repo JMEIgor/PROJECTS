@@ -1,18 +1,21 @@
+import os
+import pandas as pd
 from flask import current_app as app
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, make_response, send_file
 from . import main_routes
 from flask import Blueprint
 from ..services.gpt_functions import process_and_send_data, call_chatgpt_api
 from ..services.services import import_data, process_data
+from ..services.db import get_postgres_connection
 
 #main_page route 
-@main_routes.route('/')
+@main_routes.route('/' , methods=['GET', 'POST'])
 def index():
     return render_template('index.html')
 
 #outines page route
 @main_routes.route('/routines')
-def routine_page():
+def routines_page():
     return render_template('routines.html')
 
 #exportation page route
@@ -57,8 +60,9 @@ def send_data_gpt_route():
         response = "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde."
     return jsonify({'response': response})
 
-@main_routes.route('/export_data', methods=['GET'])
-def export_data():
+#Route to export data from JME DB
+@main_routes.route('/export_data', methods=['GET', 'POST'])
+def export_data_route():
     try:
         postgres_connection = get_postgres_connection()
         postgres_cursor = postgres_connection.cursor()
@@ -66,18 +70,17 @@ def export_data():
         rows = postgres_cursor.fetchall()
         columns = [desc[0] for desc in postgres_cursor.description]
 
-        def generate():
-            data = csv.writer(open("tb_info_call.csv", "w"))
-            data.writerow(columns)
-            data.writerows(rows)
-            with open("tb_info_call.csv", "r") as file:
-                for row in file:
-                    yield row
+        df = pd.DataFrame(rows, columns=columns)
+        filename = "tb_info_call.xlsx"
+        filepath = os.path.join(os.getcwd(), filename)
+        df.to_excel(filepath, index=False)
 
-        response = make_response(generate())
-        response.headers["Content-Disposition"] = "attachment; filename=tb_info_call.csv"
-        response.headers["Content-Type"] = "text/csv"
-        return response
+        return send_file(filepath, as_attachment=True)
     except Exception as error:
         app.logger.error(f"Erro ao exportar dados: {error}")
-        return "Erro ao exportar dados", 500
+        return jsonify({"error": "Erro ao exportar dados"}), 500
+    finally:
+        if postgres_cursor:
+            postgres_cursor.close()
+        if postgres_connection:
+            postgres_connection.close()

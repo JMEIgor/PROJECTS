@@ -1,4 +1,5 @@
 from app import create_app
+from app.routes import main_routes
 
 # Cria uma instância da aplicação Flask
 app = create_app()
