@@ -10,10 +10,7 @@ create_table_queries = {
             'tb_gpt_output': """
             CREATE TABLE IF NOT EXISTS tb_gpt_output (
                 id SERIAL PRIMARY KEY,
-                uid_call VARCHAR(32) NOT NULL,
-                dt_call DATE NOT NULL,
-                id_speaker VARCHAR(8) NOT NULL,
-                id_caller VARCHAR(30) NOT NULL,
+                callid VARCHAR(32) NOT NULL,
                 tx_response TEXT NOT NULL
             );
             """,

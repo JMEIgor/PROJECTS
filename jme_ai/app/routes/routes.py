@@ -16,7 +16,7 @@ def index():
 #outines page route
 @main_routes.route('/routines')
 def routines_page():
-    return render_template('routines.html')
+    return render_template('routines_2.html')
 
 #exportation page route
 @main_routes.route('/exportation')
@@ -46,6 +46,7 @@ def transform_and_insert_data_route():
     transform_and_insert_data()
     return "Dados transformados e inseridos com sucesso!"
 
+#Route to send data to ChatGPT em import return response on JME BD
 @main_routes.route('/send_data_gpt', methods=['GET', 'POST'])
 def send_data_gpt_route():
     api_response = process_and_send_data()
