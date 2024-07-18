@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Rotinas</title>
+</head>
+<body>
+    <h1>Rotinas de Dados</h1>
+
+    <div class="main-square">
+        <button class="main-button" onclick="location.href='{{ url_for('main_routes.import_data_route') }}'">Import Data From Lettel</button>
+        <button class="main-button" onclick="location.href='{{ url_for('main_routes.transform_and_insert_data_route') }}'">Transform Data</button>
+    </div>
+</body>
+</html>

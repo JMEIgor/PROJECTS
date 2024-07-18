@@ -1,0 +1,29 @@
+project/
+│
+├── app/  
+│   ├── templates/
+│   ├── static/
+│   ├── routes/
+│   ├── models/
+│   ├── services/
+│   ├── utils/
+│   ├── __init__.py
+│   └── ...
+├── config.py
+├── run.py
+├── requirements.txt
+└── ...
+
+-- 
+
+Organização dos Diretórios:
+app/: código da aplicação.
+templates/: arquivos HTML.
+static/:    arquivos CSS, JS, imagens.
+routes/:    arquivos de rotas.
+models/:    arquivos de modelos (banco de dados).
+services/:  lógica de negócios e comunicação com a API.
+utils/:     utilitários e funções auxiliares.
+
+Arquivo principal:
+run.py:     arquivo para iniciar a aplicação.

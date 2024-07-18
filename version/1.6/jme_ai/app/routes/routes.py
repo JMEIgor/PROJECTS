@@ -1,24 +1,21 @@
-import os
-import pandas as pd
 from flask import current_app as app
-from flask import render_template, request, jsonify, make_response, send_file
+from flask import render_template, request, jsonify
 from . import main_routes
 from flask import Blueprint
 from ..services.gpt_functions import process_and_send_data, call_chatgpt_api
-from ..services.services import import_data, process_data
-from ..services.db import get_postgres_connection
+from ..services.services import import_data
 
 #main_page route 
-@main_routes.route('/' , methods=['GET', 'POST'])
+@main_routes.route('/')
 def index():
     return render_template('index.html')
 
-#outines page route
+#routines page route
 @main_routes.route('/routines')
-def routines_page():
-    return render_template('routines_2.html')
+def routine_page():
+    return render_template('routines.html')
 
-#exportation page route
+#data exportation page route
 @main_routes.route('/exportation')
 def exportation_page():
     return render_template('exportation.html')
@@ -34,19 +31,12 @@ def import_data_route():
     import_data()
     return "Dados importados com sucesso!"
 
-#Route to process data from JME DB
-@main_routes.route('/process_data')
-def process_data_route():
-    process_data()
-    return "Dados processados com sucesso"
-
 #Route to transform 
 @main_routes.route('/transform_and_insert_data', methods=['GET', 'POST'])
 def transform_and_insert_data_route():
     transform_and_insert_data()
     return "Dados transformados e inseridos com sucesso!"
 
-#Route to send data to ChatGPT and import return response on JME BD
 @main_routes.route('/send_data_gpt', methods=['GET', 'POST'])
 def send_data_gpt_route():
     api_response = process_and_send_data()
@@ -56,32 +46,32 @@ def send_data_gpt_route():
             app.logger.info(f"Resposta da API: {response}")
         except (KeyError, IndexError) as e:
             app.logger.error(f"Erro ao processar a resposta da API: {e}")
-            response = "{Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde 1.}"
+            response = "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde."
     else:
-        response = "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde 2."
+        response = "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde."
     return jsonify({'response': response})
 
-#Route to export data from JME DB
-@main_routes.route('/export_data', methods=['GET', 'POST'])
-def export_data_route():
+@main_routes.route('/export_data', methods=['GET'])
+def export_data():
     try:
         postgres_connection = get_postgres_connection()
         postgres_cursor = postgres_connection.cursor()
-        postgres_cursor.execute("SELECT * FROM tb_gpt_output")
+        postgres_cursor.execute("SELECT * FROM tb_info_call")
         rows = postgres_cursor.fetchall()
         columns = [desc[0] for desc in postgres_cursor.description]
 
-        df = pd.DataFrame(rows, columns=columns)
-        filename = "tb_gpt_output.xlsx"
-        filepath = os.path.join(os.getcwd(), filename)
-        df.to_excel(filepath, index=False)
+        def generate():
+            data = csv.writer(open("tb_info_call.csv", "w"))
+            data.writerow(columns)
+            data.writerows(rows)
+            with open("tb_info_call.csv", "r") as file:
+                for row in file:
+                    yield row
 
-        return send_file(filepath, as_attachment=True)
+        response = make_response(generate())
+        response.headers["Content-Disposition"] = "attachment; filename=tb_info_call.csv"
+        response.headers["Content-Type"] = "text/csv"
+        return response
     except Exception as error:
         app.logger.error(f"Erro ao exportar dados: {error}")
-        return jsonify({"error": "Erro ao exportar dados"}), 500
-    finally:
-        if postgres_cursor:
-            postgres_cursor.close()
-        if postgres_connection:
-            postgres_connection.close()
+        return "Erro ao exportar dados", 500
