@@ -16,7 +16,7 @@ def call_chatgpt_api(prompt):
         'Authorization': f'Bearer {Config.OPENAI_API_KEY}'
     }
     data = {
-        'model': 'gpt-4',
+        'model': 'gpt-4o-mini',
         'messages': [
             {'role': 'system', 'content': 'A JME é uma empresa de prestação de serviços. Atuamos como Representação de Software da Sysmo Sistemas. A Sysmo Sistemas desenvolve software especializado para supermercados. Nossa maior demanda é no Suporte Técnico nos produtos Sysmo, que incluem ERP, PDV, aplicativos móveis CRM e Pricing. Buscamos otimizar a avaliação das ligações de suporte técnico para garantir um atendimento de alta qualidade e eficiente. Para isso, as ligações são transcritas para obtenção de informações.'},
             {'role': 'user', 'content': prompt}
@@ -87,7 +87,7 @@ def process_and_send_data():
                  3 - Tipo de problema: (Cadastro) ou (Configuração) ou (Processo) ou (Erro de Sistema)
                  4 - Tempo gasto em cada etapa, Identificação do problema e Resolução.
                  5 - Alguma sugestão ou feedback do cliente.
-                 6 - O problema foi resolvido:(SIM ou NÃO)
+                 6 - O problema foi resolvido?
                 """
                 response = call_chatgpt_api(prompt)
 
@@ -150,3 +150,5 @@ def save_response_to_db(callid, response_text):
         app.logger.info("Resposta salva no banco de dados com sucesso.")
     except Exception as error:
         app.logger.error(f"Erro ao salvar a resposta no banco de dados: {error}")
+
+
