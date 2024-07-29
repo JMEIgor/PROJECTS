@@ -10,9 +10,9 @@
             return date && !isNaN(Date.parse(date));
         }
 
-        async function executeRoutine(url, params = {}) {
+        async function executeRoutine(url, params = {}, statusBar, logBar) {
             console.log("Executing routine with params:", params);
-            document.getElementById('status-bar').innerText = 'Status: Executando...';
+            statusBar.innerText = 'Status: Executando...';
             try {
                 const response = await fetch(url, {
                     method: 'POST',
@@ -27,19 +27,21 @@
                 }
                 
                 const data = await response.json();
-                document.getElementById('status-bar').innerText = 'Status: Sucesso';
-                document.getElementById('console-log').innerText = JSON.stringify(data, null, 2);
+                statusBar.innerText = 'Status: Sucesso';
+                logBar.innerText = JSON.stringify(data, null, 2);
                 console.log("Response received:", data);
             } catch (error) {
-                document.getElementById('status-bar').innerText = 'Status: Erro';
-                document.getElementById('console-log').innerText = 'Erro: ' + error.message;
+                statusBar.innerText = 'Status: Erro';
+                logBar.innerText = 'Erro: ' + error.message;
                 console.error("Error:", error);
             }
         }
 
         function importData() {
-            const dateEntry = document.getElementById('date-entry').value;
-            const dateFinal = document.getElementById('date-final').value;
+            const dateEntry = document.getElementById('date-entry-import').value;
+            const dateFinal = document.getElementById('date-final-import').value;
+            const statusBar = document.getElementById('status-bar-import');
+            const logBar = document.getElementById('console-log-import');
 
             console.log("Import data clicked");
             console.log("Date Entry:", dateEntry);
@@ -52,12 +54,14 @@
 
             const params = { date_entry: dateEntry, date_final: dateFinal };
             console.log("Params to send:", params);
-            executeRoutine("{{ url_for('main_routes.import_data_route') }}", params);
+            executeRoutine("{{ url_for('main_routes.import_data_route') }}", params, statusBar, logBar);
         }
 
         function processData() {
-            const dateEntry = document.getElementById('date-entry').value;
-            const dateFinal = document.getElementById('date-final').value;
+            const dateEntry = document.getElementById('date-entry-process').value;
+            const dateFinal = document.getElementById('date-final-process').value;
+            const statusBar = document.getElementById('status-bar-process');
+            const logBar = document.getElementById('console-log-process');
 
             console.log("Process data clicked");
             console.log("Date Entry:", dateEntry);
@@ -70,12 +74,14 @@
 
             const params = { date_entry: dateEntry, date_final: dateFinal };
             console.log("Params to send:", params);
-            executeRoutine("{{ url_for('main_routes.process_data_route') }}", params);
+            executeRoutine("{{ url_for('main_routes.process_data_route') }}", params, statusBar, logBar);
         }
 
         function sendDataToGPT() {
-            const dateEntry = document.getElementById('date-entry').value;
-            const dateFinal = document.getElementById('date-final').value;
+            const dateEntry = document.getElementById('date-entry-gpt').value;
+            const dateFinal = document.getElementById('date-final-gpt').value;
+            const statusBar = document.getElementById('status-bar-gpt');
+            const logBar = document.getElementById('console-log-gpt');
 
             console.log("Send data to GPT clicked");
             console.log("Date Entry:", dateEntry);
@@ -88,7 +94,7 @@
 
             const params = { date_entry: dateEntry, date_final: dateFinal };
             console.log("Params to send:", params);
-            executeRoutine("{{ url_for('main_routes.send_data_gpt_route') }}", params);
+            executeRoutine("{{ url_for('main_routes.send_data_gpt_route') }}", params, statusBar, logBar);
         }
     </script>
 </head>
@@ -99,15 +105,15 @@
         <label>Importação de dados da Lettel:</label>
         <div class="routine-header">
             <div class="date-input">
-                <label for="date-entry">Selecione o período:</label> 
-                <input type="date" id="date-entry" name="date-entry">
-                <label for="date-final">até</label>
-                <input type="date" id="date-final" name="date-final">
+                <label for="date-entry-import">Selecione o período:</label> 
+                <input type="date" id="date-entry-import" name="date-entry-import">
+                <label for="date-final-import">até</label>
+                <input type="date" id="date-final-import" name="date-final-import">
             </div>
-            <div id="status-bar">Status:</div>
+            <div id="status-bar-import">Status:</div>
             <div class="console-log">
-                <label for="console-log">Console log:</label><br>
-                <textarea id="console-log" name="console-log" rows="5" cols="50" readonly></textarea>
+                <label for="console-log-import">Console log:</label><br>
+                <textarea id="console-log-import" name="console-log-import" rows="5" cols="50" readonly></textarea>
             </div>
         </div>
         <div class="import-data-button-container">
@@ -119,15 +125,15 @@
         <label>Processar dados importados da Lettel</label>
         <div class="routine-header">
             <div class="date-input">
-                <label for="date-entry">Selecione o período:</label> 
-                <input type="date" id="date-entry" name="date-entry">
-                <label for="date-final">até</label>
-                <input type="date" id="date-final" name="date-final">
+                <label for="date-entry-process">Selecione o período:</label> 
+                <input type="date" id="date-entry-process" name="date-entry-process">
+                <label for="date-final-process">até</label>
+                <input type="date" id="date-final-process" name="date-final-process">
             </div>
-            <div id="status-bar">Status:</div>
+            <div id="status-bar-process">Status:</div>
             <div class="console-log">
-                <label for="console-log">Console log:</label><br>
-                <textarea id="console-log" name="console-log" rows="5" cols="50" readonly></textarea>
+                <label for="console-log-process">Console log:</label><br>
+                <textarea id="console-log-process" name="console-log-process" rows="5" cols="50" readonly></textarea>
             </div>
         </div>
         <div class="routine-button-container">
@@ -139,15 +145,15 @@
         <label>Integrar dados com o ChatGPT</label>
         <div class="routine-header">
             <div class="date-input">
-                <label for="date-entry">Selecione o período:</label> 
-                <input type="date" id="date-entry" name="date-entry">
-                <label for="date-final">até</label>
-                <input type="date" id="date-final" name="date-final">
+                <label for="date-entry-gpt">Selecione o período:</label> 
+                <input type="date" id="date-entry-gpt" name="date-entry-gpt">
+                <label for="date-final-gpt">até</label>
+                <input type="date" id="date-final-gpt" name="date-final-gpt">
             </div>
-            <div id="status-bar">Status:</div>
+            <div id="status-bar-gpt">Status:</div>
             <div class="console-log">
-                <label for="console-log">Console log:</label><br>
-                <textarea id="console-log" name="console-log" rows="5" cols="50" readonly></textarea>
+                <label for="console-log-gpt">Console log:</label><br>
+                <textarea id="console-log-gpt" name="console-log-gpt" rows="5" cols="50" readonly></textarea>
             </div>
         </div>
         <div class="routine-button-container">
