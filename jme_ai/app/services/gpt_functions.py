@@ -50,7 +50,7 @@ def call_chatgpt_api(prompt):
     return response_json
 
 # Função principal para processar e enviar dados para a API do ChatGPT
-def process_and_send_data():
+def process_and_send_data(date_entry, date_final):
     try:
         ensure_table_exists()
 
@@ -64,7 +64,7 @@ def process_and_send_data():
                 query = "SELECT callid, text FROM tb_info_call WHERE callid > %s ORDER BY callid LIMIT 1"
                 postgres_cursor.execute(query, (last_processed_callid,))
             else:
-                query = "SELECT callid, text FROM tb_info_call ORDER BY callid LIMIT 1"
+                query = "SELECT callid, text FROM tb_info_call WHERE date >= '2024-07-23' and status <> 'ABANDON' ORDER BY callid LIMIT 1"
                 postgres_cursor.execute(query)
 
             rows = postgres_cursor.fetchall()

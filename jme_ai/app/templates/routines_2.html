@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Rotinas</title>
+    <script>
+        function validateDate(date) { 
+            return date && !isNaN(Date.parse(date));
+        }
+
+        async function executeRoutine(url, params = {}) {
+            console.log("Executing routine with params:", params);
+            document.getElementById('status-bar').innerText = 'Status: Executando...';
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(params)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                document.getElementById('status-bar').innerText = 'Status: Sucesso';
+                document.getElementById('console-log').innerText = JSON.stringify(data, null, 2);
+                console.log("Response received:", data);
+            } catch (error) {
+                document.getElementById('status-bar').innerText = 'Status: Erro';
+                document.getElementById('console-log').innerText = 'Erro: ' + error.message;
+                console.error("Error:", error);
+            }
+        }
+
+        function importData() {
+            const dateEntry = document.getElementById('date-entry').value;
+            const dateFinal = document.getElementById('date-final').value;
+
+            console.log("Import data clicked");
+            console.log("Date Entry:", dateEntry);
+            console.log("Date Final:", dateFinal);
+
+            if (!validateDate(dateEntry) || !validateDate(dateFinal)) {
+                alert("Por favor, selecione datas válidas.");
+                return;
+            }
+
+            const params = { date_entry: dateEntry, date_final: dateFinal };
+            console.log("Params to send:", params);
+            executeRoutine("{{ url_for('main_routes.import_data_route') }}", params);
+        }
+
+        function processData() {
+            const dateEntry = document.getElementById('date-entry').value;
+            const dateFinal = document.getElementById('date-final').value;
+
+            console.log("Process data clicked");
+            console.log("Date Entry:", dateEntry);
+            console.log("Date Final:", dateFinal);
+
+            if (!validateDate(dateEntry) || !validateDate(dateFinal)) {
+                alert("Por favor, selecione datas válidas.");
+                return;
+            }
+
+            const params = { date_entry: dateEntry, date_final: dateFinal };
+            console.log("Params to send:", params);
+            executeRoutine("{{ url_for('main_routes.process_data_route') }}", params);
+        }
+
+        function sendDataToGPT() {
+            const dateEntry = document.getElementById('date-entry').value;
+            const dateFinal = document.getElementById('date-final').value;
+
+            console.log("Send data to GPT clicked");
+            console.log("Date Entry:", dateEntry);
+            console.log("Date Final:", dateFinal);
+
+            if (!validateDate(dateEntry) || !validateDate(dateFinal)) {
+                alert("Por favor, selecione datas válidas.");
+                return;
+            }
+
+            const params = { date_entry: dateEntry, date_final: dateFinal };
+            console.log("Params to send:", params);
+            executeRoutine("{{ url_for('main_routes.send_data_gpt_route') }}", params);
+        }
+    </script>
+</head>
+<body>
+    <h1>Rotinas de Dados</h1>
+
+    <div class="main-square-routines">
+        <label>Importação de dados da Lettel:</label>
+        <div class="routine-header">
+            <div class="date-input">
+                <label for="date-entry">Selecione o período:</label> 
+                <input type="date" id="date-entry" name="date-entry">
+                <label for="date-final">até</label>
+                <input type="date" id="date-final" name="date-final">
+            </div>
+            <div id="status-bar">Status:</div>
+            <div class="console-log">
+                <label for="console-log">Console log:</label><br>
+                <textarea id="console-log" name="console-log" rows="5" cols="50" readonly></textarea>
+            </div>
+        </div>
+        <div class="import-data-button-container">
+            <button class="import-data-button" onclick="importData()">Executar</button>
+        </div>
+    </div>
+    
+    <div class="main-square-routines">
+        <label>Processar dados importados da Lettel</label>
+        <div class="routine-header">
+            <div class="date-input">
+                <label for="date-entry">Selecione o período:</label> 
+                <input type="date" id="date-entry" name="date-entry">
+                <label for="date-final">até</label>
+                <input type="date" id="date-final" name="date-final">
+            </div>
+            <div id="status-bar">Status:</div>
+            <div class="console-log">
+                <label for="console-log">Console log:</label><br>
+                <textarea id="console-log" name="console-log" rows="5" cols="50" readonly></textarea>
+            </div>
+        </div>
+        <div class="routine-button-container">
+            <button class="main-button" onclick="processData()">Executar</button>
+        </div>
+    </div>
+    
+    <div class="main-square-routines">
+        <label>Integrar dados com o ChatGPT</label>
+        <div class="routine-header">
+            <div class="date-input">
+                <label for="date-entry">Selecione o período:</label> 
+                <input type="date" id="date-entry" name="date-entry">
+                <label for="date-final">até</label>
+                <input type="date" id="date-final" name="date-final">
+            </div>
+            <div id="status-bar">Status:</div>
+            <div class="console-log">
+                <label for="console-log">Console log:</label><br>
+                <textarea id="console-log" name="console-log" rows="5" cols="50" readonly></textarea>
+            </div>
+        </div>
+        <div class="routine-button-container">
+            <button class="main-button" onclick="sendDataToGPT()">Executar</button>
+        </div>
+    </div>
+</body>
+</html>
