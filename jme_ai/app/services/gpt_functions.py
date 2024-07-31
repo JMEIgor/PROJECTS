@@ -51,7 +51,6 @@ def call_chatgpt_api(prompt):
 
 # Função principal para processar e enviar dados para a API do ChatGPT
 def process_and_send_data(date_entry, date_final):
-    postgres_connection = None
     try:
         postgres_connection = get_postgres_connection()
         ensure_table_exists(postgres_connection)
@@ -59,32 +58,20 @@ def process_and_send_data(date_entry, date_final):
         postgres_cursor = postgres_connection.cursor()
 
         last_processed_callid = None
+        no_new_records = False
 
-        while True:
+        while not no_new_records:
             if last_processed_callid:
-                query = """
-                SELECT callid, text 
-                FROM tb_info_call 
-                WHERE callid > %s 
-                AND date BETWEEN %s AND %s 
-                AND status <> 'ABANDON' 
-                ORDER BY callid LIMIT 1
-                """
+                query = "SELECT callid, text FROM tb_info_call WHERE callid > %s AND date BETWEEN %s AND %s ORDER BY callid LIMIT 1"
                 postgres_cursor.execute(query, (last_processed_callid, date_entry, date_final))
             else:
-                query = """
-                SELECT callid, text 
-                FROM tb_info_call 
-                WHERE date BETWEEN %s AND %s 
-                AND status <> 'ABANDON' 
-                ORDER BY callid LIMIT 1
-                """
+                query = "SELECT callid, text FROM tb_info_call WHERE date BETWEEN %s AND %s AND status <> 'ABANDON' ORDER BY callid LIMIT 1"
                 postgres_cursor.execute(query, (date_entry, date_final))
 
             rows = postgres_cursor.fetchall()
             if not rows:
-                app.logger.info("Nenhum novo registro encontrado, esperando...")
-                time.sleep(10)  # Espera 10 segundos antes de verificar novamente
+                app.logger.info("Nenhum novo registro encontrado, encerrando o processo.")
+                no_new_records = True
                 continue
 
             columns = [desc[0] for desc in postgres_cursor.description]
@@ -109,21 +96,21 @@ def process_and_send_data(date_entry, date_final):
                 if response and 'choices' in response and len(response['choices']) > 0:
                     response_text = response['choices'][0]['message']['content']
                     callid = row[0]
-                    try:
-                        save_response_to_db(callid, response_text)
-                    except ValueError as ve:
-                        app.logger.error(f"Erro ao salvar a resposta no banco de dados: {ve}")
+                    save_response_to_db(callid, response_text)
                     last_processed_callid = callid
                 else:
                     app.logger.error(f"Resposta inválida da API do ChatGPT para o registro {row[0]}: {response}")
 
                 # Adiciona um intervalo maior entre as chamadas para evitar atingir o limite de taxa
                 time.sleep(2)  # Ajuste conforme necessário
+
+        postgres_cursor.close()
+        postgres_connection.close()
+        return "Processamento finalizado com sucesso."
     except Exception as error:
         app.logger.error(f"Erro ao selecionar dados: {error}")
-    finally:
-        if postgres_connection:
-            postgres_connection.close()
+        return "Erro ao processar dados."
+
 # Função para salvar a resposta da API no banco de dados
 def save_response_to_db(callid, response_text):
     postgres_connection = None

@@ -80,32 +80,18 @@ def transform_and_insert_data_route():
 #Route to send data to ChatGPT and import return response on JME BD
 @main_routes.route('/send_data_gpt', methods=['POST'])
 def send_data_gpt_route():
+    data = request.get_json()
+    date_entry = data.get('date_entry')
+    date_final = data.get('date_final')
+    
+    app.logger.info(f"Received date_entry: {date_entry}, date_final: {date_final}")
+
     try:
-        data = request.get_json()
-        app.logger.info(f"Data received: {data}")
-        date_entry = data.get('date_entry')
-        date_final = data.get('date_final')
-
-        app.logger.info(f"Received date_entry: {date_entry}, date_final: {date_final}")
-
-        if not date_entry or not date_final:
-            return jsonify({"error": "As datas de entrada e final devem ser fornecidas"}), 400
-
         api_response = process_and_send_data(date_entry, date_final)
-        if api_response:
-            try:
-                response = api_response['choices'][0]['message']['content']
-                app.logger.info(f"Resposta da API: {response}")
-            except (KeyError, IndexError) as e:
-                app.logger.error(f"Erro ao processar a resposta da API: {e}")
-                response = "{Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde 1.}"
-        else:
-            response = "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde 2."
-
-        return jsonify({'response': response})
+        return jsonify({'response': api_response})
     except Exception as e:
-        app.logger.error(f"Erro ao enviar dados para o ChatGPT: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        app.logger.error(f"Erro ao enviar dados para o ChatGPT: {e}")
+        return jsonify({'error': str(e)}), 500
 
 #Route to export data from JME DB
 @main_routes.route('/export_data', methods=['GET', 'POST'])
