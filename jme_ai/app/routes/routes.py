@@ -101,7 +101,7 @@ def export_data_route():
         postgres_cursor = postgres_connection.cursor()
         postgres_cursor.execute("SELECT * FROM tb_gpt_output")
         rows = postgres_cursor.fetchall()
-        columns = [desc[0] for desc[0] in postgres_cursor.description]
+        columns = [desc[0] for desc in postgres_cursor.description]
 
         df = pd.DataFrame(rows, columns=columns)
         filename = "tb_gpt_output.xlsx"
@@ -117,3 +117,4 @@ def export_data_route():
             postgres_cursor.close()
         if postgres_connection:
             postgres_connection.close()
+

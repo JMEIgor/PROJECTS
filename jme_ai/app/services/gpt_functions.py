@@ -62,7 +62,7 @@ def process_and_send_data(date_entry, date_final):
 
         while not no_new_records:
             if last_processed_callid:
-                query = "SELECT callid, text FROM tb_info_call WHERE callid > %s AND date BETWEEN %s AND %s ORDER BY callid LIMIT 1"
+                query = "SELECT callid, text FROM tb_info_call WHERE callid > %s AND date BETWEEN %s AND %s and status <> 'ABANDON' ORDER BY callid LIMIT 1"
                 postgres_cursor.execute(query, (last_processed_callid, date_entry, date_final))
             else:
                 query = "SELECT callid, text FROM tb_info_call WHERE date BETWEEN %s AND %s AND status <> 'ABANDON' ORDER BY callid LIMIT 1"
