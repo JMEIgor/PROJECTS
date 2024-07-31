@@ -34,6 +34,7 @@ def import_data_route():
     try:
         data = request.get_json()
         app.logger.info(f"Data received: {data}")
+        
         date_entry = data.get('date_entry')
         date_final = data.get('date_final')
 
@@ -90,7 +91,7 @@ def send_data_gpt_route():
         if not date_entry or not date_final:
             return jsonify({"error": "As datas de entrada e final devem ser fornecidas"}), 400
 
-        api_response = process_and_send_data()
+        api_response = process_and_send_data(date_entry, date_final)
         if api_response:
             try:
                 response = api_response['choices'][0]['message']['content']

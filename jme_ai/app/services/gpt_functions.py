@@ -18,7 +18,7 @@ def call_chatgpt_api(prompt):
     data = {
         'model': 'gpt-4o-mini',
         'messages': [
-            {'role': 'system', 'content': 'A JME é uma empresa de prestação de serviços. Atuamos como Representação de Software da Sysmo Sistemas. A Sysmo Sistemas desenvolve software especializado para supermercados. Nossa maior demanda é no Suporte Técnico nos produtos Sysmo, que incluem ERP, PDV, aplicativos móveis CRM e Pricing. Buscamos otimizar a avaliação das ligações de suporte técnico para garantir um atendimento de alta qualidade e eficiente. Para isso, as ligações são transcritas para obtenção de informações.'},
+            {'role': 'system', 'content': 'A JME é uma empresa de prestação de serviços. Atuamos como Representação de Software da Sysmo Sistemas. A Sysmo Sistemas desenvolve software especializado para supermercados. Nossa maior demanda é no Suporte Técnico nos produtos Sysmo, que incluem ERP, PDV, aplicativos móveis CRM e Pricing. Buscamos otimizar a avaliação das ligações de suporte técnico para garantir um atendimento de alta qualidade e eficiente. Para isso, as ligações são transcritas para obtenção de informações.Mande a resposta de forma mais simples sem uso de muitos caracteres especiais e sempre no mesmo padrão.'},
             {'role': 'user', 'content': prompt}
         ]
     }
@@ -51,21 +51,35 @@ def call_chatgpt_api(prompt):
 
 # Função principal para processar e enviar dados para a API do ChatGPT
 def process_and_send_data(date_entry, date_final):
+    postgres_connection = None
     try:
-        ensure_table_exists()
-
         postgres_connection = get_postgres_connection()
+        ensure_table_exists(postgres_connection)
+
         postgres_cursor = postgres_connection.cursor()
 
         last_processed_callid = None
 
         while True:
             if last_processed_callid:
-                query = "SELECT callid, text FROM tb_info_call WHERE callid > %s ORDER BY callid LIMIT 1"
-                postgres_cursor.execute(query, (last_processed_callid,))
+                query = """
+                SELECT callid, text 
+                FROM tb_info_call 
+                WHERE callid > %s 
+                AND date BETWEEN %s AND %s 
+                AND status <> 'ABANDON' 
+                ORDER BY callid LIMIT 1
+                """
+                postgres_cursor.execute(query, (last_processed_callid, date_entry, date_final))
             else:
-                query = "SELECT callid, text FROM tb_info_call WHERE date >= '2024-07-23' and status <> 'ABANDON' ORDER BY callid LIMIT 1"
-                postgres_cursor.execute(query)
+                query = """
+                SELECT callid, text 
+                FROM tb_info_call 
+                WHERE date BETWEEN %s AND %s 
+                AND status <> 'ABANDON' 
+                ORDER BY callid LIMIT 1
+                """
+                postgres_cursor.execute(query, (date_entry, date_final))
 
             rows = postgres_cursor.fetchall()
             if not rows:
@@ -95,7 +109,10 @@ def process_and_send_data(date_entry, date_final):
                 if response and 'choices' in response and len(response['choices']) > 0:
                     response_text = response['choices'][0]['message']['content']
                     callid = row[0]
-                    save_response_to_db(callid, response_text)
+                    try:
+                        save_response_to_db(callid, response_text)
+                    except ValueError as ve:
+                        app.logger.error(f"Erro ao salvar a resposta no banco de dados: {ve}")
                     last_processed_callid = callid
                 else:
                     app.logger.error(f"Resposta inválida da API do ChatGPT para o registro {row[0]}: {response}")
@@ -104,20 +121,23 @@ def process_and_send_data(date_entry, date_final):
                 time.sleep(2)  # Ajuste conforme necessário
     except Exception as error:
         app.logger.error(f"Erro ao selecionar dados: {error}")
-
+    finally:
+        if postgres_connection:
+            postgres_connection.close()
 # Função para salvar a resposta da API no banco de dados
 def save_response_to_db(callid, response_text):
+    postgres_connection = None
     try:
         # Adicionar logs para depuração
         app.logger.debug(f"Resposta completa da API: {response_text}")
 
-        # Expressão regular para capturar as respostas entre os números de perguntas
+        # Expressão regular para capturar o texto entre os números das perguntas
         pattern = re.compile(
-            r"1 - Descrição do Problema:(.*?)\n2 - Descrição da Solução:(.*?)\n3 - Tipo de problema:(.*?)\n4 - Tempo gasto em cada etapa:(.*?)\n5 - Alguma sugestão ou feedback do cliente:(.*?)\n6 - O problema foi resolvido:(.*)",
+            r"1\s*[-:]\s*(.*?)(?=\s*2\s*[-:])\s*2\s*[-:]\s*(.*?)(?=\s*3\s*[-:])\s*3\s*[-:]\s*(.*?)(?=\s*4\s*[-:])\s*4\s*[-:]\s*(.*?)(?=\s*5\s*[-:])\s*5\s*[-:]\s*(.*?)(?=\s*6\s*[-:])\s*6\s*[-:]\s*(.*)",
             re.DOTALL
         )
         match = pattern.search(response_text)
-        
+
         if match:
             descricao_problema = match.group(1).strip()
             descricao_solucao = match.group(2).strip()
@@ -134,21 +154,40 @@ def save_response_to_db(callid, response_text):
             app.logger.debug(f"Sugestão ou Feedback: {sugestao_feedback}")
             app.logger.debug(f"Problema Resolvido: {problema_resolvido}")
 
+            postgres_connection = get_postgres_connection()
+            postgres_cursor = postgres_connection.cursor()
+            insert_query = """
+            INSERT INTO tb_gpt_output (callid, descricao_problema, descricao_solucao, tipo_problema, tempo_gasto_etapas, sugestao_feedback, problema_resolvido)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            postgres_cursor.execute(insert_query, (callid, descricao_problema, descricao_solucao, tipo_problema, tempo_gasto_etapas, sugestao_feedback, problema_resolvido))
+            postgres_connection.commit()  # Commit após cada inserção
+            postgres_cursor.close()
+            app.logger.info("Resposta salva no banco de dados com sucesso.")
         else:
+            # Log detalhado para partes ausentes
             app.logger.error(f"Resposta recebida: {response_text}")
-            raise ValueError("A resposta do ChatGPT não contém todas as partes esperadas.")
+            missing_parts = []
+            if not re.search(r"1\s*[-:]\s*", response_text):
+                missing_parts.append("Descrição do Problema")
+            if not re.search(r"2\s*[-:]\s*", response_text):
+                missing_parts.append("Descrição da Solução")
+            if not re.search(r"3\s*[-:]\s*", response_text):
+                missing_parts.append("Tipo de problema")
+            if not re.search(r"4\s*[-:]\s*", response_text):
+                missing_parts.append("Tempo gasto em cada etapa")
+            if not re.search(r"5\s*[-:]\s*", response_text):
+                missing_parts.append("Sugestão ou feedback")
+            if not re.search(r"6\s*[-:]\s*", response_text):
+                missing_parts.append("Problema resolvido")
 
-        postgres_connection = get_postgres_connection()
-        postgres_cursor = postgres_connection.cursor()
-        insert_query = """
-        INSERT INTO tb_gpt_output (callid, descricao_problema, descricao_solucao, tipo_problema, tempo_gasto_etapas, sugestao_feedback, problema_resolvido)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """
-        postgres_cursor.execute(insert_query, (callid, descricao_problema, descricao_solucao, tipo_problema, tempo_gasto_etapas, sugestao_feedback, problema_resolvido))
-        postgres_connection.commit()
-        postgres_cursor.close()
-        app.logger.info("Resposta salva no banco de dados com sucesso.")
+            app.logger.error(f"Partes ausentes na resposta do ChatGPT: {', '.join(missing_parts)}")
+            raise ValueError("A resposta do ChatGPT não contém todas as partes esperadas.")
     except Exception as error:
         app.logger.error(f"Erro ao salvar a resposta no banco de dados: {error}")
-
-
+        if postgres_connection:
+            postgres_connection.rollback()
+        raise
+    finally:
+        if postgres_connection:
+            postgres_connection.close()
