@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Exportação de Dados</title>
+</head>
+<body>
+    <h1>Exportação de Relatórios</h1>
+    
+    <div class="main-square">
+        <form method="POST" action="{{ url_for('main_routes.export_data_route') }}">
+            <button type="submit" class="main-button">Exportação de Dados</button>
+        </form>
+    </div>
+</body>
+</html>
