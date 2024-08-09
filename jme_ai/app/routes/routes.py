@@ -104,7 +104,7 @@ def export_data_route():
         postgres_cursor.execute("""
         select tic.date as "Data",
             ta.name as "Analista",
-            tt.id || ' - ' || tt.team as "Equipe",
+            tt.team as "Equipe",
 		    tgo.callid as "ID",
 		    tgo.descricao_problema as "Desc. Problema",
 		    tgo.descricao_solucao as "Desc. Solução",

@@ -6,7 +6,7 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    background: linear-gradient(to right, #02025a, #130149);
+    background: linear-gradient(to right, #2929ff, #130149);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
@@ -17,6 +17,10 @@ h1 {
     text-align: center;
     margin-bottom: 20px;
     width: 100%;
+}
+
+.top-center-image {
+    align-items: top;
 }
 
 .main-container {
