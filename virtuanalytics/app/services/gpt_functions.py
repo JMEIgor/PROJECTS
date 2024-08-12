@@ -145,7 +145,7 @@ def save_response_to_db(callid, response_text):
             postgres_cursor = postgres_connection.cursor()
             insert_query = """
             INSERT INTO tb_gpt_output (callid, descricao_problema, descricao_solucao, tipo_problema, tempo_gasto_etapas, sugestao_feedback, problema_resolvido)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING
             """
             postgres_cursor.execute(insert_query, (callid, descricao_problema, descricao_solucao, tipo_problema, tempo_gasto_etapas, sugestao_feedback, problema_resolvido))
             postgres_connection.commit()  # Commit após cada inserção
