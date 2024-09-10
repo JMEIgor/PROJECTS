@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title> Virtu Analytics</title>
+    <link rel="icon" type="image/png" href="/static/img/V_logo.ico">
+    <title> Virtu Analytics - Home</title>
 </head>
 <body>
     <div class="top-center-image">
@@ -15,7 +16,14 @@
     <div class="main-square">
         <button class="main-button" onclick="location.href='{{ url_for('main_routes.routines_page') }}'">Rotinas</button>
         <button class="main-button" onclick="location.href='{{ url_for('main_routes.exportation_page') }}'">Exportação de Dados</button>
-        <button class="main-button" onclick="location.href='{{ url_for('main_routes.chatwithgpt_page') }}'">ChatWithGPT</button>
+        <button class="main-button" onclick="showAlert()" style="color: gray;"><s>ChatWithGPT</s></button> 
     </div>
+
+    <!-- Script para exibir o alerta -->
+    <script>
+        function showAlert() {
+            alert("A função em questão ainda não está disponível para uso.");
+        }
+    </script>
 </body>
 </html>
