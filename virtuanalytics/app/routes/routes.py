@@ -105,13 +105,16 @@ def export_data_route():
         select tic.date as "Data",
             ta.name as "Analista",
             tt.team as "Equipe",
-		    tgo.callid as "ID",
 		    tgo.descricao_problema as "Desc. Problema",
 		    tgo.descricao_solucao as "Desc. Solução",
-		    tgo.tipo_problema as "Tipo",
+            tic.duration as "Tempo Total",
 		    tgo.tempo_gasto_etapas as "Tempo Etapas",
+            tgo.tipo_problema as "Tipo",
+            null as "Nota1",
+            null as "Nota2",
 		    tgo.sugestao_feedback as "Sugestão/Feedback",
-		    tgo.problema_resolvido as "Problema resolvido"
+		    tgo.problema_resolvido as "Problema resolvido",
+            tgo.callid as "ID"
         from tb_gpt_output tgo 
         left join tb_info_call tic on (tic.callid = tgo.callid)
         left join tb_analyst ta on (ta.id::TEXT = right(tic.agente::text, 3))
