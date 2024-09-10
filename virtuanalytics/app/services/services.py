@@ -176,7 +176,7 @@ def process_data(date_entry, date_final):
                 try:
                     insert_query = """
                     INSERT INTO tb_info_call (callid, caller_id, transfer, status, date, queue, holdtime, start_time, end_time, text, duration, agente)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING
                     """
                     postgres_cursor.execute(insert_query, (callid, caller_id, transfer, status, date, queue, holdtime, start_time, end_time, text, duration, agente))
                     app.logger.info(f"Registro Inserido: {callid}, {caller_id}, {transfer}, {status}, {date}, {queue}, {holdtime}, {start_time}, {end_time}, {text}, {duration}, {agente}")
