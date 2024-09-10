@@ -6,21 +6,23 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    background: linear-gradient(to right, #2929ff, #130149);
+    background: url("../static/img/VVVV.png") no-repeat center center fixed;
     background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-    color: #ececec; /* Cor do texto clara para contraste */
+    color: #ececec;
 }
 
 h1 {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 08px;
     width: 100%;
+    color: #9c9a9a; /* Para manter o contraste com o fundo */
 }
 
 .top-center-image {
     align-items: top;
+    align-content: center;
+    border-radius: 25px;
+    overflow: hidden;
 }
 
 .main-container {
@@ -29,6 +31,11 @@ h1 {
     align-items: center;
     flex-grow: 1;
     width: 100%;
+    /* background: url("../static/img/VVVV.png") no-repeat center center fixed;
+    background-size: cover;
+    */
+
+
 }
 
 .main-square {
@@ -38,12 +45,16 @@ h1 {
     align-items: center;
     width: 300px;
     height: 300px;
-    background-color: #0f0f0f; /* Cinza mais escuro */
+    background-color: #00000067; /* Cinza mais escuro */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     padding: 20px;
+    /* background: url("../static/img/VVVV.png") no-repeat center center fixed;
+    background-size: cover;
+    */
 }
 
+/* Main Square Routines Styles */ 
 .main-square-routines {
     display: flex;
     flex-direction: column;
@@ -51,11 +62,31 @@ h1 {
     align-items: flex-start;
     width: 95%;
     height: 300px;
-    background-color: #1a1a1a; /* Cinza mais escuro */
+    background-color: #1f182a; /* Cinza mais escuro */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     padding: 20px;
+    padding-bottom: 5px; 
+    margin-bottom: 5px;
 }
+
+.main-square-routines input {
+    background-color: #1a1a1a00;
+    border-radius: 05px;
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+    height: 20px;
+    font-size: 15px;
+}
+
+.main-square-routines textarea{
+    display: flex;
+    background-color: #1a1a1a00;
+    border-radius: 05px;
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+    height: 80px;
+    font-size: 15px;}
 
 .import-data-button-container {
     display: flex;
@@ -68,6 +99,13 @@ h1 {
     padding: 20px;
 }
 
+.main-routine-label {
+    font-family: 'Courier New', Courier, monospace;
+    font-style: bold;
+    font-size: 20px;
+}
+
+/* Main Buttons Styles */ 
 .main-button {
     font-family: 'Courier New', Courier, monospace;
     width: 100%;
@@ -75,21 +113,7 @@ h1 {
     margin: 10px 0;
     font-size: 16px;
     cursor: pointer;
-    background-color: #161718; /* Azul escuro */
-    color: white;
-    border: none;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-}
-
-.import-data-button {
-    font-family: 'Courier New', Courier, monospace;
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    font-size: 16px;
-    cursor: pointer;
-    background-color: #012b96; /* Azul escuro */
+    background-color: #2d195b; /* Azul escuro */
     color: white;
     border: none;
     border-radius: 5px;
@@ -97,9 +121,65 @@ h1 {
 }
 
 .main-button:hover {
-    background-color: #012b96; /* Azul ainda mais escuro para hover */
+    background-color: #36008c;
 }
 
-.routine-button:hover {
-    background-color: #012b96; /* Azul ainda mais escuro para hover */;
+/* Routine Buttons Styles */ 
+/* --Import data button styles*/ 
+.import-data-button {
+    font-family: 'Courier New', Courier, monospace;
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #479058;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
 }
+
+.import-data-button:hover {
+    background-color: #21863c ;  
+}
+
+/* --Process data button styles */
+.process-data-button {
+    font-family: 'Courier New', Courier, monospace;
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #479058;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.process-data-button:hover {
+    background-color: #21863c ;  
+}
+
+/* --Integrate data to gpt button styles */
+.integrate-data-gpt-button {
+    font-family: 'Courier New', Courier, monospace;
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #479058;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.integrate-data-gpt-button:hover {
+    background-color: #21863c ;  
+}
+
+
